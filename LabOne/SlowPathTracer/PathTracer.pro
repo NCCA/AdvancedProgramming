@@ -1,5 +1,8 @@
 TARGET=PathTracer
 
+#QMAKE_CXXFLAGS += -O3
+QMAKE_CXXFLAGS += -O2
+#DEFINES+= USEFRAMEBUFFER
 SOURCES+=$$PWD/src/main.cpp \
          $$PWD/src/Util.cpp \
          $$PWD/src/Image.cpp \
@@ -12,7 +15,7 @@ HEADERS+=$$PWD/include/Vec.h \
          $$PWD/include/Util.h \
          $$PWD/include/Image.h \
          $$PWD/include/Framebuffer.h
-
+OBJECTS_DIR=$$PWD/obj
 INCLUDEPATH +=$$PWD/include
 CONFIG+=c++17
 

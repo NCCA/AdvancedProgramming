@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
   size_t samps = options["s"].as<size_t>();
 
 
-
+#ifdef USEFRAMEBUFFER
 
   std::unique_ptr<frm::Framebuffer> framebuffer( new frm::Framebuffer());
   framebuffer->init(w, h, NULL);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
   framebuffer->bind();
   framebuffer->poll();
   framebuffer->title("smallpt");
-
+#endif
   //size_t cPixel=0;
 
   Ray cam(Vec(50, 52, 295.6), Vec(0, -0.042612, -1).norm());        // cam pos, dir
@@ -155,10 +155,14 @@ int main(int argc, char* argv[])
 
   for (size_t y = 0; y < h; y++)
   {                    // Loop over image rows
-    char msg[50];
-    sprintf(msg, "Rendering (%ld spp) %5.2f%%", samps * 4, 100. * y / (h - 1));
-    framebuffer->title(std::string(msg));
+    #ifdef USEFRAMEBUFFER
+        char msg[50];
 
+        sprintf(msg, "Rendering (%ld spp) %5.2f%%", samps * 4, 100. * y / (h - 1));
+        framebuffer->title(std::string(msg));
+    #else
+      fprintf(stderr,"\rRendering (%d spp) %5.2f%%",samps*4,100.*y/(h-1));
+    #endif
     for (unsigned short x = 0; x < w; x++)
     {// Loop cols
       for (int sy = 0, i = (h - y - 1) * w + x; sy < 2; sy++) // 2x2 subpixel rows
@@ -175,18 +179,22 @@ int main(int argc, char* argv[])
           } // Camera rays are pushed ^^^^^ forward to start in interior
           c[i] = c[i] + Vec(clamp(r.x), clamp(r.y), clamp(r.z)) * .25;
         }
-        image.setPixel(x,h-y,toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
-     }
+        #ifdef USEFRAMEBUFFER
+          image.setPixel(x,h-y,toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
+        #endif
+      }
 
     }
-    framebuffer->image(image.get(), w, h);
-    framebuffer->poll();
-    if(framebuffer->shouldClose())
-    {
-      exit(EXIT_FAILURE);
-    }
-    framebuffer->draw();
-   } // end for rows
+    #ifdef USEFRAMEBUFFER
+      framebuffer->image(image.get(), w, h);
+      framebuffer->poll();
+      if(framebuffer->shouldClose())
+      {
+        exit(EXIT_FAILURE);
+      }
+      framebuffer->draw();
+    #endif
+    } // end for rows
 
   end = std::chrono::system_clock::now();
 
@@ -195,13 +203,20 @@ int main(int argc, char* argv[])
   std::cout << "finished computation at " << std::ctime(&end_time)
                 << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
-
+#ifdef USEFRAMEBUFFER
   while(!framebuffer->shouldClose())
   {
     framebuffer->poll();
     framebuffer->draw();
     sleep(1);
   }
-
+#endif
+  FILE *f = fopen("image.ppm", "w");         // Write image to PPM file.
+  fprintf(f, "P3\n%d %d\n%d\n", w, h, 255);
+  for (int i=0; i<w*h; i++)
+  {
+    fprintf(f,"%d %d %d ", toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
+  }
+  fclose(f);
 
 }
