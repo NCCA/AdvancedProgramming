@@ -21,7 +21,7 @@ class Image
     Image & operator=(const Image &)=delete;
     void setPixel(size_t _x, size_t _y, unsigned char _r,
                                         unsigned char _g,
-                                        unsigned char _b, unsigned char _a=1.0f);
+                                        unsigned char _b);
     void setBackground(unsigned char _r,
                        unsigned char _g,
                        unsigned char _b);

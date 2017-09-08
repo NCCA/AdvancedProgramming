@@ -213,7 +213,7 @@ void Framebuffer::createContext()
   #endif
 }
 
-void Framebuffer::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void Framebuffer::keyCallback(GLFWwindow* window, int key, int , int action, int )
 {
   Framebuffer *framebuffer = static_cast<Framebuffer*>(glfwGetWindowUserPointer(window));
 
@@ -234,7 +234,7 @@ void Framebuffer::keyCallback(GLFWwindow* window, int key, int scancode, int act
   }
 }
 
-void Framebuffer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void Framebuffer::scrollCallback(GLFWwindow* window, double , double yoffset)
 {
   Framebuffer *framebuffer = static_cast<Framebuffer*>(glfwGetWindowUserPointer(window));
 
@@ -260,7 +260,7 @@ void Framebuffer::cursorPositionCallback(GLFWwindow* window, double xpos, double
   }
 }
 
-void Framebuffer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+void Framebuffer::mouseButtonCallback(GLFWwindow* window, int button, int action, int )
 {
   Framebuffer *framebuffer = static_cast<Framebuffer*>(glfwGetWindowUserPointer(window));
 

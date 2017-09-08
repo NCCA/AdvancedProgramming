@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <chrono>
 #include <cxxopts.hpp>
 #include "Vec.h"
 #include "Ray.h"
@@ -149,11 +150,13 @@ int main(int argc, char* argv[])
   Vec cy = (cx % cam.d).norm() * .5135;
   Vec r;
   std::unique_ptr<Vec[]> c(new Vec[w * h]);
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  start = std::chrono::system_clock::now();
 
   for (size_t y = 0; y < h; y++)
   {                    // Loop over image rows
     char msg[50];
-    sprintf(msg, "\rRendering (%ld spp) %5.2f%%", samps * 4, 100. * y / (h - 1));
+    sprintf(msg, "Rendering (%ld spp) %5.2f%%", samps * 4, 100. * y / (h - 1));
     framebuffer->title(std::string(msg));
 
     for (unsigned short x = 0; x < w; x++)
@@ -162,7 +165,7 @@ int main(int argc, char* argv[])
       {
         for (int sx = 0; sx < 2; sx++, r = Vec())
         { // 2x2 subpixel cols
-          for (int s = 0; s < samps; s++)
+          for (size_t s = 0; s < samps; s++)
           {
             double r1 = 2 * uniformRand(), dx = r1 < 1 ? sqrt(r1) - 1 : 1 - sqrt(2 - r1);
             double r2 = 2 * uniformRand(), dy = r2 < 1 ? sqrt(r2) - 1 : 1 - sqrt(2 - r2);
@@ -184,6 +187,14 @@ int main(int argc, char* argv[])
     }
     framebuffer->draw();
    } // end for rows
+
+  end = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> elapsed_seconds = end-start;
+  std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+  std::cout << "finished computation at " << std::ctime(&end_time)
+                << "elapsed time: " << elapsed_seconds.count() << "s\n";
+
 
   while(!framebuffer->shouldClose())
   {
