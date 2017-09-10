@@ -20,6 +20,8 @@
 
 static std:: default_random_engine generator;
 static std::uniform_real_distribution<double> distr(0.0,1.0);
+// originally used erand48 but changed to C++ 11 think this is slower
+// need to check.
 double uniformRand()
 {
     return distr(generator);
@@ -117,8 +119,8 @@ int main(int argc, char* argv[])
 {
 
 
-  size_t w =400;
-  size_t h = 400;
+  size_t width =400;
+  size_t height = 400;
   size_t samps = 4;
   int opt;
   std::string fname("image.ppm");
@@ -127,8 +129,8 @@ int main(int argc, char* argv[])
   {
     switch(opt)
     {
-      case 'w' : w=atoi(optarg); break;
-      case 'h' : h=atoi(optarg); break;
+      case 'w' : width=atoi(optarg); break;
+      case 'h' : height=atoi(optarg); break;
       case 's' : samps=atoi(optarg); break;
       case 'f' : fname=optarg; break;
       case '?' :
@@ -141,9 +143,9 @@ int main(int argc, char* argv[])
 #ifdef USEFRAMEBUFFER
 
   std::unique_ptr<frm::Framebuffer> framebuffer( new frm::Framebuffer());
-  framebuffer->init(w, h, NULL);
+  framebuffer->init(width, height, NULL);
 
-  Image image(w,h);
+  Image image(width,height);
   image.setBackground(255,255,255);
 
   framebuffer->bind();
@@ -153,47 +155,47 @@ int main(int argc, char* argv[])
   //size_t cPixel=0;
 
   Ray cam(Vec(50, 52, 295.6), Vec(0, -0.042612, -1).norm());        // cam pos, dir
-  Vec cx = Vec(w * .5135 / h);
+  Vec cx = Vec(width * .5135 / height);
   Vec cy = (cx % cam.d).norm() * .5135;
   Vec r;
-  std::unique_ptr<Vec[]> c(new Vec[w * h]);
+  std::unique_ptr<Vec[]> c(new Vec[width * height]);
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  for (size_t y = 0; y < h; y++)
+  for (size_t y = 0; y < height; y++)
   {                    // Loop over image rows
     #ifdef USEFRAMEBUFFER
         char msg[50];
 
-        sprintf(msg, "Rendering (%ld spp) %5.2f%%", samps * 4, 100. * y / (h - 1));
+        sprintf(msg, "Rendering (%ld spp) %5.2f%%", samps * 4, 100. * y / (height - 1));
         framebuffer->title(std::string(msg));
     #else
       fprintf(stderr,"\rRendering (%d spp) %5.2f%%",samps*4,100.*y/(h-1));
     #endif
-    for (unsigned short x = 0; x < w; x++)
+    for (unsigned short x = 0; x < width; x++)
     {// Loop cols
-      for (int sy = 0, i = (h - y - 1) * w + x; sy < 2; sy++) // 2x2 subpixel rows
+      for (size_t sy = 0, i = (height - y - 1) * width + x; sy < 2; sy++) // 2x2 subpixel rows
       {
-        for (int sx = 0; sx < 2; sx++, r = Vec())
+        for (size_t sx = 0; sx < 2; sx++, r = Vec())
         { // 2x2 subpixel cols
           for (size_t s = 0; s < samps; s++)
           {
             double r1 = 2 * uniformRand(), dx = r1 < 1 ? sqrt(r1) - 1 : 1 - sqrt(2 - r1);
             double r2 = 2 * uniformRand(), dy = r2 < 1 ? sqrt(r2) - 1 : 1 - sqrt(2 - r2);
-            Vec d = cx * (((sx + .5 + dx) / 2 + x) / w - .5) +
-            cy * (((sy + .5 + dy) / 2 + y) / h - .5) + cam.d;
+            Vec d = cx * (((sx + .5 + dx) / 2 + x) / width - .5) +
+            cy * (((sy + .5 + dy) / 2 + y) / height - .5) + cam.d;
             r = r + radiance(Ray(cam.o + d * 140, d.norm()), 0) * (1. / samps);
           } // Camera rays are pushed ^^^^^ forward to start in interior
           c[i] = c[i] + Vec(clamp(r.x), clamp(r.y), clamp(r.z)) * .25;
         }
         #ifdef USEFRAMEBUFFER
-          image.setPixel(x,h-y,toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
+          image.setPixel(x,height-y,toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
         #endif
       }
 
     }
     #ifdef USEFRAMEBUFFER
-      framebuffer->image(image.get(), w, h);
+      framebuffer->image(image.get(), width, height);
       framebuffer->poll();
       if(framebuffer->shouldClose())
       {
@@ -219,8 +221,8 @@ int main(int argc, char* argv[])
   }
 #endif
   FILE *f = fopen(fname.c_str(), "w");         // Write image to PPM file.
-  fprintf(f, "P3\n%d %d\n%d\n", w, h, 255);
-  for (int i=0; i<w*h; i++)
+  fprintf(f, "P3\n%ld %ld\n%d\n", width, height, 255);
+  for (size_t i=0; i<width*height; i++)
   {
     fprintf(f,"%d %d %d ", toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
   }
