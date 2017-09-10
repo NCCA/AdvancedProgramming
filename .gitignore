@@ -34,7 +34,7 @@ Makefile
 *.out
 # image files
 *.psd
-
+*.ppm
 *.app
 # temp files under linux
 *.~*

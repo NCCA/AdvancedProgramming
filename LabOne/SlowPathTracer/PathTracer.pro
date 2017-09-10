@@ -2,7 +2,7 @@ TARGET=PathTracer
 
 #QMAKE_CXXFLAGS += -O3
 QMAKE_CXXFLAGS += -O2
-#DEFINES+= USEFRAMEBUFFER
+DEFINES+= USEFRAMEBUFFER
 SOURCES+=$$PWD/src/main.cpp \
          $$PWD/src/Util.cpp \
          $$PWD/src/Image.cpp \

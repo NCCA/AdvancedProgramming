@@ -1,14 +1,15 @@
 // base on smallpt, a Path Tracer by Kevin Beason, 2008s
 
 #include <cmath>
-#include <cstdlib> // Make : g++ -O3 -fopenmp smallpt.cpp -o smallpt
-#include <cstdio>  //        Remove "-fopenmp" for g++ version < 4.2
+#include <cstdlib>
+#include <cstdio>
 #include <array>
 #include <algorithm>
+#include <iostream>
 #include <random>
 #include <memory>
 #include <chrono>
-#include <cxxopts.hpp>
+#include <limits>
 #include "Vec.h"
 #include "Ray.h"
 #include "Sphere.h"
@@ -28,8 +29,8 @@ double uniformRand()
 
 static std::array<Sphere,9> spheres = {{
   //Scene: radius, position, emission, color, material
-  Sphere(1e5, Vec(1e5 + 1, 40.8, 81.6), Vec(), Vec(.75, .25, .25), DIFF), //Left
-  Sphere(1e5, Vec(-1e5 + 99, 40.8, 81.6), Vec(), Vec(.25, .25, .75), DIFF), //Rght
+  Sphere(1e5, Vec(1e5 + 1, 40.8, 81.6), Vec(), Vec(.95, .25, .25), DIFF), //Left
+  Sphere(1e5, Vec(-1e5 + 99, 40.8, 81.6), Vec(), Vec(.25, .25, .95), DIFF), //Rght
   Sphere(1e5, Vec(50, 40.8, 1e5), Vec(), Vec(.75, .75, .75), DIFF),   //Back
   Sphere(1e5, Vec(50, 40.8, -1e5 + 170), Vec(), Vec(), DIFF),         //Frnt
   Sphere(1e5, Vec(50, 1e5, 81.6), Vec(), Vec(.75, .75, .75), DIFF),   //Botm
@@ -43,7 +44,7 @@ static std::array<Sphere,9> spheres = {{
 bool intersect(const Ray& r, double& t, size_t& id)
 {
   double d;
-  double inf=t=1e20;
+  double inf=t=std::numeric_limits<double>::max();
 
   for (size_t i = spheres.size(); i--; )
   {
@@ -83,11 +84,11 @@ Vec radiance(const Ray& r, int depth)
   }
   if (obj.refl == DIFF)
   { // Ideal DIFFUSE reflection
-  double r1 = 2 * M_PI * uniformRand(), r2 = uniformRand(), r2s = sqrt(r2);
-  Vec w = nl, u = ((fabs(w.x) > .1 ? Vec(0, 1) : Vec(1)) % w).norm(), v = w % u;
-  Vec d = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1 - r2)).norm();
-  return obj.e + f.mult(radiance(Ray(x, d), depth));
-}
+    double r1 = 2 * M_PI * uniformRand(), r2 = uniformRand(), r2s = sqrt(r2);
+    Vec w = nl, u = ((fabs(w.x) > .1 ? Vec(0, 1) : Vec(1)) % w).norm(), v = w % u;
+    Vec d = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1 - r2)).norm();
+    return obj.e + f.mult(radiance(Ray(x, d), depth));
+  }
   else if (obj.refl == SPEC)
   { // Ideal SPECULAR reflection
     return obj.e + f.mult(radiance(Ray(x, r.d - n * 2 * n.dot(r.d)), depth));
@@ -115,21 +116,27 @@ Vec radiance(const Ray& r, int depth)
 int main(int argc, char* argv[])
 {
 
-  // using the excellent cxxopts to parse arguments see
-  // https://github.com/jarro2783/cxxopts
-  cxxopts::Options options("Pathtracer", "Simple Path Tracer");
-  options.add_options()
-    ("w,width", "width of image", cxxopts::value<size_t>()->default_value("1024"))
-    ("h,height", "height of image",cxxopts::value<size_t>()->default_value("720"))
-    ("s,samples", "samples to use per pixel",cxxopts::value<size_t>()->default_value("2"))
-    ;
 
-  options.parse(argc, argv);
-
-  size_t w = options["w"].as<size_t>();
-  size_t h = options["h"].as<size_t>();
-  size_t samps = options["s"].as<size_t>();
-
+  size_t w =400;
+  size_t h = 400;
+  size_t samps = 4;
+  int opt;
+  std::string fname("image.ppm");
+  // quick and dirty command line check no error checking!
+  while ((opt = getopt(argc,argv,"w:h:s:f:")) != EOF)
+  {
+    switch(opt)
+    {
+      case 'w' : w=atoi(optarg); break;
+      case 'h' : h=atoi(optarg); break;
+      case 's' : samps=atoi(optarg); break;
+      case 'f' : fname=optarg; break;
+      case '?' :
+        std::cerr<<"usage PathTracer -w [width] -h [height] -s [samples] \n";
+        exit(EXIT_SUCCESS);
+      break;
+    }
+  }
 
 #ifdef USEFRAMEBUFFER
 
@@ -211,7 +218,7 @@ int main(int argc, char* argv[])
     sleep(1);
   }
 #endif
-  FILE *f = fopen("image.ppm", "w");         // Write image to PPM file.
+  FILE *f = fopen(fname.c_str(), "w");         // Write image to PPM file.
   fprintf(f, "P3\n%d %d\n%d\n", w, h, 255);
   for (int i=0; i<w*h; i++)
   {
