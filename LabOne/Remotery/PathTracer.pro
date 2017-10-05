@@ -3,10 +3,12 @@ TARGET=PathTracer
 #QMAKE_CXXFLAGS += -O3
 QMAKE_CXXFLAGS += -O2
 DEFINES+= USEFRAMEBUFFER
+DEFINES+= RMT_USE_OPENGL
 SOURCES+=$$PWD/src/main.cpp \
          $$PWD/src/Util.cpp \
          $$PWD/src/Image.cpp \
-         $$PWD/src/Framebuffer.cpp
+         $$PWD/src/Framebuffer.cpp \
+         $$PWD/src/Remotery.c
 
 HEADERS+=$$PWD/include/Vec.h \
          $$PWD/include/Ray.h \
@@ -14,8 +16,9 @@ HEADERS+=$$PWD/include/Vec.h \
          $$PWD/include/Material.h \
          $$PWD/include/Util.h \
          $$PWD/include/Image.h \
-         $$PWD/include/Framebuffer.h
-OBJECTS_DIR=$$PWD/obj
+         $$PWD/include/Framebuffer.h \
+         $$PWD/include/Remotery.h
+
 INCLUDEPATH +=$$PWD/include
 CONFIG+=c++17
 
