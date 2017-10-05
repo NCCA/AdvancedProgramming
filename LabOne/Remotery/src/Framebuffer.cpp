@@ -45,8 +45,8 @@ GLFWwindow* Framebuffer::init(const size_t _resolution_x, const size_t _resoluti
 
 void Framebuffer::bind()
 {
- // rmt_ScopedOpenGLSample(ScopedSample);
- // rmt_LogText("Bind Framebuffer");
+  rmt_BeginOpenGLSample(BindFrameBuffer);
+  rmt_LogText("Bind Framebuffer");
 
   glfwMakeContextCurrent(m_window);
 
@@ -55,12 +55,14 @@ void Framebuffer::bind()
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
   glBindTexture(GL_TEXTURE_2D, m_texture);
+  rmt_EndOpenGLSample();
+
 }
 
 void Framebuffer::draw()
 {
- // rmt_ScopedOpenGLSample(ScopedSample);
- // rmt_LogText("Draw Framebuffer");
+  rmt_BeginOpenGLSample(Draw);
+  rmt_LogText("Draw Framebuffer");
 
   glEnable(GL_FRAMEBUFFER_SRGB);
   glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
@@ -76,6 +78,8 @@ void Framebuffer::draw()
     glUniform2f(m_trans_uniform, m_trans_x, m_trans_y);
     glUniform1f(m_scale_uniform, m_scale);
   }
+  rmt_EndOpenGLSample();
+
 }
 
 bool Framebuffer::close()
@@ -90,11 +94,13 @@ void Framebuffer::poll()
 
 void Framebuffer::image(const unsigned char* _image, const size_t _resolution_x, const size_t _resolution_y)
 {
-//  rmt_ScopedOpenGLSample(ScopedSample);
-//  rmt_LogText("copy Image Data");
+  rmt_BeginOpenGLSample(blitToImage);
+  rmt_LogText("copy Image Data");
 
   glBindTexture(GL_TEXTURE_2D, m_texture);
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _resolution_x, _resolution_y, GL_RGB, GL_UNSIGNED_BYTE, _image);
+  rmt_EndOpenGLSample();
+
 }
 
 void Framebuffer::title(const std::string &_title)

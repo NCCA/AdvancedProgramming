@@ -140,6 +140,15 @@ int main(int argc, char* argv[])
       break;
     }
   }
+  Remotery *rmt;
+
+  if( RMT_ERROR_NONE != rmt_CreateGlobalInstance(&rmt) )
+  {
+    std::cerr<<"Problem with remotery init\n";
+    exit(EXIT_FAILURE);
+  }
+
+  rmt_BindOpenGL();
 
 #ifdef USEFRAMEBUFFER
 
@@ -154,13 +163,6 @@ int main(int argc, char* argv[])
   framebuffer->title("smallpt");
 #endif
   //size_t cPixel=0;
-  Remotery *rmt;
-
-  if( RMT_ERROR_NONE != rmt_CreateGlobalInstance(&rmt) )
-  {
-    std::cerr<<"Problem with remotery init\n";
-    exit(EXIT_FAILURE);
-  }
 
 
   Ray cam(Vec(50, 52, 295.6), Vec(0, -0.042612, -1).norm());        // cam pos, dir
@@ -253,6 +255,7 @@ int main(int argc, char* argv[])
     fprintf(f,"%d %d %d ", toInt(c[i].x), toInt(c[i].y), toInt(c[i].z));
   }
   fclose(f);
+  rmt_UnbindOpenGL();
   rmt_DestroyGlobalInstance(rmt);
 
 
